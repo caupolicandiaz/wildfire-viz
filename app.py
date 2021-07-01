@@ -16,15 +16,6 @@ import pandas as pd
 import numpy as np
 import regex as  re
 
-# from flask import Flask, render_template
-
-# app = Flask(__name__)
-
-
-# @app.route('/')
-# def index():
-#     return render_template('basic.html')
-
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css'\
 '/assets/dash_style_sheet_fires.css',]
 
@@ -388,5 +379,5 @@ def update_div(some_text):
 
 
 
-if __name__ == '__main__':
-    app.run_server(debug=False)
+# if __name__ == '__main__':
+#     app.run_server(debug=False)
