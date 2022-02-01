@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 # dash imports
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+import dash_core_components as dcc # deprecated
+import dash_html_components as html # deprecated
+# from dash import dcc
+# from dash import html 
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 
@@ -14,12 +16,14 @@ import colorlover as cl
 
 import pandas as pd
 import numpy as np
-import regex as  re
+import re
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css'\
 '/assets/dash_style_sheet_fires.css',]
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+server = app.server
 
 colors = {
     'background': '#111111',
@@ -379,5 +383,5 @@ def update_div(some_text):
 
 
 
-# if __name__ == '__main__':
-#     app.run_server(debug=False)
+if __name__ == '__main__':
+    app.run_server(debug=False)
