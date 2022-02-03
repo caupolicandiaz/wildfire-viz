@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # dash imports
 import dash
-import dash_core_components as dcc # deprecated
-import dash_html_components as html # deprecated
-# from dash import dcc
-# from dash import html 
+# deprecated
+# import dash_core_components as dcc 
+# import dash_html_components as html 
+from dash import dcc
+from dash import html 
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 
@@ -16,6 +17,7 @@ import colorlover as cl
 
 import pandas as pd
 import numpy as np
+# import orjson
 import re
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css'\
@@ -227,7 +229,7 @@ app.layout = html.Div(className='grid-page',children=[
                         marks={i: '{}'.format(i) for i in range(1970, 2025,5)},
                         min=1970,
                         max=2020,
-                        value=[2018,2020]), 
+                        value=[2010,2012]), 
                     html.Div(id='bubble-header',children=[
                         html.P('Filter Summary: '),
                         html.Div(id='map-data'),]),                      
@@ -281,7 +283,7 @@ def clean_data(value,category):
 
      # more generally, this line would be
      # json.dumps(cleaned_df)
-     return cleaned_df.to_json() #date_format='iso', orient='split'
+     return cleaned_df.to_json()
 
 # bar chart call back
 @app.callback(
