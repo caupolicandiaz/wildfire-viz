@@ -126,13 +126,6 @@ p {
 /*    background-color: #BDD0D0; */
 }
 
-#range-header {
-/*    padding: 10px;*/
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-}
 
 #bubble-header {
 /*    padding: 10px;*/
@@ -153,6 +146,14 @@ p {
     padding-left: 80px;
 }
 
+.ranges {
+    /*    padding: 10px;*/
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+}
+
 .header {
     grid-area: header;
     display: flex;
@@ -166,15 +167,16 @@ p {
 
 .stacked-figure {
     grid-area: stacked;
-/*    display: flex;
-    flex-basis: auto;*/
+    /* display: flex;
+    flex-direction: column;
+    justify-content: flex-start; */
 }
 
 .bar-figure {
     grid-area: bars;
-    display: flex;
+    /* display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: flex-end; */
 }
 
 
@@ -220,8 +222,8 @@ p {
 .grid-page { 
     margin: 2% 1% 0 1%;
     display: grid;
-    grid-template-columns: auto 800px 600px auto;
-    grid-template-rows: 70px 600px 400px 70px;
+    grid-template-columns: auto 55% 35% auto;
+    grid-template-rows: 70px 65% 25% auto;
     grid-gap: 4px;
     grid-template-areas: 
       '. header . .'
