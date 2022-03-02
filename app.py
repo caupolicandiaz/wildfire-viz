@@ -80,7 +80,7 @@ def bar_fig(years_data,scale_choice):
         y=[x[1] if x[0] not in year_selection else np.nan for x in data],
         marker_color='rgba(152, 103, 144,.4)',
         hovertemplate = hover_format,))
-    acres_fig.update_layout(barmode='stack',plot_bgcolor='#ececf1', showlegend=False, autosize=True)  #height=350,margin=dict(t=25),                         
+    acres_fig.update_layout(barmode='stack',plot_bgcolor='#ececf1', paper_bgcolor='#ececf1', showlegend=False, autosize=True)  #height=350,margin=dict(t=25),                         
     acres_fig.update_xaxes(title='Years')
     acres_fig.update_yaxes(title='Acres Burned',type=scale_choice)
 
@@ -102,17 +102,17 @@ def stacked_fig(dd_selection):
                 x=fire_counts.index, y=fire_counts[col], name=col,
                 fillcolor= the_color_scale[i],
                 hovertemplate =
-                f"Source: {col}" +
-                "<br>Year: %{x}<br>" +
-                "Total Fires: %{y}<br>"+  
-                "<extra></extra>",
+                f"Source: {col} <br>" 
+                + "Year: %{x} <br>" 
+                + "Total Fires: %{y} <br>"
+                + "<extra></extra>",
                 showlegend=False,
                 mode='lines',
                 line=dict(width=0, color= the_color_scale[i]),
                 stackgroup='one', # define stack group
             ))
 
-    go_stack.update_layout(title_text='',plot_bgcolor='#ececf1', autosize=True,margin=dict(t=25)) #, height=600,
+    go_stack.update_layout(title_text='',plot_bgcolor='#ececf1', paper_bgcolor='#ececf1', autosize=True,) #, height=600,
     go_stack.update_yaxes(title='Annual Fire Counts', tickvals=list(range(500,2500,500)), showgrid=True, automargin=True)
     go_stack.update_xaxes(showgrid=False)
 
@@ -130,18 +130,19 @@ def scatter_map(the_data, sizes):
     max = sub['total_acres'].max() if sizes[1] == 10000 else sizes[1]
     temp = sub[(sub['total_acres'] >= sizes[0]) & (sub['total_acres'] <= max)]
 
-    the_text = 'Source: ' + temp['general_cause'] + '<br>' + 'Year: ' \
-    + temp['fire_year'].astype('str') + '<br>' + 'Total Acres: ' \
-    + temp['total_acres'].astype('str') 
+
+    customdf = np.stack((temp['general_cause'],temp['fire_year'],temp['total_acres']),axis=-1)
 
     scatter_fig.add_trace(go.Scattermapbox(
             lat=temp['latitude'],
             lon=temp['longitude'],
-            text=the_text,              
+            # text=the_text,              
             showlegend=True,
             name='',
             mode='markers',
-            hoverinfo='text',
+            # hoverinfo='text',
+            customdata = customdf,
+            hovertemplate = 'Source: %{customdata[0]} <br> Year: %{customdata[1]} <br> Total Acres: %{customdata[2]:,.0f} <br>',
             marker=go.scattermapbox.Marker(
                 size=10, #temp['marker_sz'],
                 # sizemode='area',
@@ -156,7 +157,7 @@ def scatter_map(the_data, sizes):
         # height=550,
         hovermode='closest',
         # title_text='Fire Locations',
-        paper_bgcolor='#BDD0D0', #rgba(0,0,0,0)',
+        paper_bgcolor='#ececf1', #rgba(0,0,0,0)',
         legend=dict(
             orientation="v",
             title="Fires",
@@ -188,87 +189,89 @@ app.layout = html.Div(className='grid-page',children=[
         html.H3(' '),
     ]),
     html.Div(id='side-bar',children=[
+        html.Div(id='tab-header',children=[
+            html.P('Ignition Sources'),
+            html.Button('Reset Values',id='reset-button'),
+            dcc.Store(id='click-value',data=0)]),
+        html.Div(id='dd-container',children=dcc.Dropdown(
+            id='filter-dd',
+            options=dropdown_lst,
+            value=fire_causes,
+            placeholder="Select a cause",
+            multi=True),),
+        html.Div(className='ranges',id='range-header',children=[
+            html.P('Year Range: '),
+            html.Div(id='range-text'),]),  
+        dcc.RangeSlider(
+            className='the-slider',
+            id='year-selector',
+            marks={i: '{}'.format(i) for i in range(1970, 2025,5)},
+            min=1970,
+            max=2020,
+            value=[2010,2012],
+            step=1), 
+        html.Div(className='ranges',id='acre-header',children=[
+            html.P('Fire Size: '),
+            html.Div(id='acre-text'),]), 
+        dcc.RangeSlider(
+            className='the-slider',
+            id='size-selector',
+            marks={i: '{}'.format(10 ** i) for i in range(5)},
+            value=[1,2], 
+            step=.01),
+        html.Div(id='bubble-header',children=[
+            html.P('Filter Summary: '),
+            html.Div(id='map-data'),]),                      
+        html.Div(className='bubble-figure',children=[
+            html.Div(children=''
+            ),]),
+        html.P('* A selection that contains the max acre range will display all fires above this value as well'),
+        ]),
+    html.Div(id='main-figure',children=[
         dcc.Tabs(
-            id='tabs-menu',
-            value='tab-2',
-            className='custom-tab-holder',
+            id='tabs-main',
+            value='tab-1',
+            className='main-tab-frame',
             children=[
                 dcc.Tab(
-                    label='Data',
+                    label='Annual Fire Counts',
                     value='tab-1',
-                    className='custom-tab',children=[
-                        html.P(children='Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod' 
-                                'tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,'
-                                'quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo'
-                                'consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse'
-                                'cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non'
-                                'proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-                    ),],),
-                dcc.Tab( 
-                    label='View Controls',
+                    className='custom-frame',
+                    selected_className='selected-frame',children=[
+                        html.Div(className='plot-header', children='Fire Chart'),
+                        dcc.Graph(
+                        id='fire-fig',
+                    ),]),
+                dcc.Tab(
+                    label='Total Acres Burned',
                     value='tab-2',
-                    className='custom-tab',children=[
-                    html.H3(''),
-                    html.Div(id='tab-header',children=[
-                        html.P('Ignition Sources'),
-                        html.Button('Reset Values',id='reset-button'),
-                        dcc.Store(id='click-value',data=0)]),
-                    html.Div(id='dd-container',children=dcc.Dropdown(
-                        id='filter-dd',
-                        options=dropdown_lst,
-                        value=fire_causes,
-                        placeholder="Select a cause",
-                        multi=True),),
-                    html.Div(className='ranges',id='range-header',children=[
-                        html.P('Year Range: '),
-                        html.Div(id='range-text'),]),  
-                    dcc.RangeSlider(
-                        className='the-slider',
-                        id='year-selector',
-                        marks={i: '{}'.format(i) for i in range(1970, 2025,5)},
-                        min=1970,
-                        max=2020,
-                        value=[2010,2012],
-                        step=1), 
-                    html.Div(className='ranges',id='acre-header',children=[
-                        html.P('Fire Size: '),
-                        html.Div(id='acre-text'),]), 
-                    dcc.RangeSlider(
-                        className='the-slider',
-                        id='size-selector',
-                        marks={i: '{}'.format(10 ** i) for i in range(5)},
-                        value=[1,100], 
-                        step=.01),
-                    html.Div(id='bubble-header',children=[
-                        html.P('Filter Summary: '),
-                        html.Div(id='map-data'),]),                      
-                    html.Div(className='bubble-figure',children=[
+                    className='custom-frame',
+                    selected_className='selected-frame',children=[
+                        html.Div(id='scale-container',children=[
+                            html.Div(id='y-label', children='Y-scale:  '),
+                            dcc.RadioItems(id='radio-scale',
+                                options=[
+                                    {'label': 'log', 'value': 'log'},
+                                    {'label': 'linear', 'value': 'linear'},
+                                ],
+                                value='log',
+                                labelStyle={'display': 'inline-block'}
+                            ),]), 
+                        dcc.Graph(
+                            id='acres-fig',
+                        ),]),
+                dcc.Tab(
+                    label='Fire Map',
+                    value='tab-3',
+                    className='custom-frame',
+                    selected_className='selected-frame',children=[
+                        html.Div(className='plot-header', children='Oregon Map'),
                         dcc.Graph(
                             id='oregon-map',
                         ),]),
-                    
-                ]),
-        ]),
-        ]),    
-    html.Div(className='stacked-figure',children=[
-        dcc.Graph(
-            id='fire-fig',
-        ),]), 
-    html.Div(className='bar-figure',children=[
-        html.Div(id='scale-container',children=[
-            html.Div(id='scale-title',children='Y-scale:  '),
-            dcc.RadioItems(id='radio-scale',
-                options=[
-                    {'label': 'log', 'value': 'log'},
-                    {'label': 'linear', 'value': 'linear'},
-                ],
-                value='log',
-                labelStyle={'display': 'inline-block'}
-            ),]), 
-        dcc.Graph(
-            id='acres-fig',
-        ),]),
+                    ])]),
     dcc.Store(id='intermediate-value'),
+    dcc.Store(id='transformed-value'),
     html.Div(className='footer', children=[ 
         html.Div(''), 
         html.Div(id='text-out'), 
@@ -279,9 +282,12 @@ app.layout = html.Div(className='grid-page',children=[
 ########################################################################################################
 ########################################################################################################
 # app call back section 
+
+
 @app.callback(Output('intermediate-value', 'data'), 
     [Input('year-selector', 'value'),
     Input('filter-dd', 'value')])
+
 def clean_data(value,category):
      # some expensive clean data step
 
@@ -293,6 +299,18 @@ def clean_data(value,category):
      # more generally, this line would be
      # json.dumps(cleaned_df)
      return cleaned_df.to_json()
+
+# transform func
+def transform_value(value):
+    return int(10 ** value)
+
+@app.callback(Output('transformed-value', 'data'), 
+    [Input('size-selector', 'value')],
+    )
+
+def update_sizes(orig_sizes):
+    
+    return [transform_value(x) for x in orig_sizes]
 
 # bar chart call back
 @app.callback(
@@ -325,23 +343,16 @@ def update_fig(selection):
         return stacked_fig(selection)
 
 # map functions
-def transform_value(value):
-    return int(10 ** value)
 
 @app.callback(
     Output('oregon-map', 'figure'), 
     [Input('intermediate-value', 'data'),
-    Input('size-selector', 'value')],
+    Input('transformed-value', 'data')],
     )
 
 def update_map(jsonified_data, vals):
-    # if jsonified_data == None:
-
-    #     raise PreventUpdate
-    # else:
-    transformed_vals = [transform_value(x) for x in vals]
        
-    return scatter_map(jsonified_data, transformed_vals)
+    return scatter_map(jsonified_data, vals)
 
 # year slider output
 @app.callback(
@@ -358,7 +369,7 @@ def update_range(some_text):
 # acre slider output
 @app.callback(
     Output('acre-text', 'children'), 
-    [Input('size-selector', 'value')],
+    [Input('transformed-value', 'data')],
     )
 def update_acres(some_text):
 

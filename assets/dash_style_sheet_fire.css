@@ -93,7 +93,7 @@ p {
 }
 
 #side-bar {
-    grid-area: tabs;
+    grid-area: controls;
     display: flex;
     flex-direction: column;
     white-space: wrap;
@@ -108,13 +108,37 @@ p {
 
 }
 
+#main-figure {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    white-space: wrap;
+    overflow: hidden;
+    justify-content: space-between;
+    text-overflow: ellipsis;
+    /*padding: 4px;*/
+    border-radius: 5px;
+    border-color: beige;
+    box-shadow: beige;
+    background-color: #ececf1;
+}
+/*
 #side-bar   .tab {
     padding: 1px;
     border-radius: 4px;
-/*    border-color: beige;
-    box-shadow: beige;*/
+    border-color: beige;
+    box-shadow: beige;
     background-color: #BDD0D0
 
+}
+*/
+
+#main-figure   .tab {
+    padding: 1px;
+    border-radius: 4px;
+    border-color: beige;
+    box-shadow: beige;
+    background-color: #ececf1;
 }
 
 #tab-header {
@@ -126,6 +150,10 @@ p {
 /*    background-color: #BDD0D0; */
 }
 
+.plot-header {
+    padding-top: 10px;
+    visibility: hidden;
+}
 
 #bubble-header {
 /*    padding: 10px;*/
@@ -144,6 +172,7 @@ p {
     flex-direction: row;
     justify-content: flex-start;
     padding-left: 80px;
+    padding-top: 10px;
 }
 
 .ranges {
@@ -213,6 +242,23 @@ p {
     background-color: #84536a;  
 }
 
+.custom-frame {
+    min-height: 22px;
+    /*padding: 5px;*/
+    border-color: beige;
+
+    background-color: #ececf1;  
+}
+
+.selected-frame {
+    min-height: 22px;
+    /*padding: 5px;*/
+    border-color: beige;
+
+    background-color: #ececf1;
+    border-top: 3px solid #986790 !important;  
+}
+
 .footer {
     grid-area: footer;
     display: flex;
@@ -227,8 +273,8 @@ p {
     grid-gap: 4px;
     grid-template-areas: 
       '. header . .'
-      '. stacked tabs .'
-      '. bars tabs .'
+      '. main controls .'
+      '. main controls .'
       '. footer . .'
   }
 
