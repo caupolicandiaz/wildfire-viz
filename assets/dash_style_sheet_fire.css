@@ -1,11 +1,22 @@
 @import url('https://fonts.googleapis.com/css?family=BenchNine&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
 
-h2 {
+/*h2 {
   font-family: ' BenchNine', sans-serif;
   font-weight: 700;
   font-style: normal;
   font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+  color: rgba(0, 0, 0, 0.8);
+  -webkit-font-smoothing: antialiased;
+}*/
+
+.banner-txt {
+  font-family: ' BenchNine', sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 24px;
   line-height: 1.15;
   letter-spacing: -.02em;
   color: rgba(0, 0, 0, 0.8);
@@ -268,7 +279,7 @@ p {
 .grid-page { 
     margin: 2% 1% 0 1%;
     display: grid;
-    grid-template-columns: auto 55% 35% auto;
+    grid-template-columns: auto 60% 35% auto;
     grid-template-rows: 70px 65% 25% auto;
     grid-gap: 4px;
     grid-template-areas: 
@@ -278,21 +289,24 @@ p {
       '. footer . .'
   }
 
-/*@media (max-width: 800px) { 
+@media only screen and (max-width: 1000px) { 
+    .banner-txt {
+	    font-size: 3vw;
+    }
+    
     .grid-page {margin: 2% 1% 0 1%;
         display: grid;
-        grid-template-columns: auto 672px auto;
+        grid-template-columns: auto 95% auto;
         grid-gap: 4px;
         grid-template-areas: 
           '. header .'
-          '. site .'
-          '.legend.'
-          '. slides .'
-          '. project .'
-          '. stats .'
+          '. main .'
+          '. main .'
+          '. controls .'
+          '. controls .'
           '. footer .'
     }
-  }*/
+  }
 
 /*styling parameters*/
 

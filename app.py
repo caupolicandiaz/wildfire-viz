@@ -17,10 +17,10 @@ import colorlover as cl
 
 import pandas as pd
 import numpy as np
-# import orjson
 import re
+import pickle
 
-external_stylesheets = ['/assets/dash_style_sheet_fires.css',] #'http://codepen.io/chriddyp/pen/bWLwgP.css'\
+external_stylesheets = ['/assets/dash_style_sheet_fire.css',] #'http://codepen.io/chriddyp/pen/bWLwgP.css'\
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -34,14 +34,20 @@ colors = {
 mapbox_access_token = 'pk.eyJ1IjoicGF1bGR6IiwiYSI6ImNrNDIxcGVqNTA3ajYzZm8wbXI4Mml6NDIifQ.PWBbtxmT5Fk_EGU90oYVIw'
 
 # add data
-df = pd.read_excel('oregon_fires_clean.xlsx',header=0)
+with open('dataframes.pkl','rb') as f:
+    data_dict = pickle.load(f)
+
+
+df = data_dict['main']
 
 # stacked area chart data
-fire_counts = df.pivot_table(values='id',index='fire_year',columns='general_cause',aggfunc='count')
-fire_counts.drop(columns='Under Invest',inplace=True)
+fire_counts = data_dict['counts']
+
+#fire_counts = df.pivot_table(values='id',index='fire_year',columns='general_cause',aggfunc='count')
+#fire_counts.drop(columns='Under Invest',inplace=True)
 
 # acres burned data
-acres = df.groupby(['fire_year']).sum()
+acres = data_dict['acres'] #df.groupby(['fire_year']).sum()
 
 # create options list
 fire_causes = list(df['general_cause'].unique())
@@ -185,7 +191,7 @@ app.layout = html.Div(className='grid-page',children=[
     html.Div(
         className='header',
         children=[
-        html.H2('Oregon Wildfires: Exploring 50 years of data'),
+        html.P(className='banner-txt', children='Oregon Wildfires: Exploring 50 Years of Data'),
         html.H3(' '),
     ]),
     html.Div(id='side-bar',children=[
@@ -205,7 +211,7 @@ app.layout = html.Div(className='grid-page',children=[
         dcc.RangeSlider(
             className='the-slider',
             id='year-selector',
-            marks={i: '{}'.format(i) for i in range(1970, 2025,5)},
+            marks={i: '{}'.format(i) for i in range(1970, 2030, 10)},
             min=1970,
             max=2020,
             value=[2010,2012],
