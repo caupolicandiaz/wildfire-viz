@@ -329,10 +329,6 @@ def update_sizes(orig_sizes):
     )
 
 def update_bars(the_years,the_scale):
-    # if the_years == None and the_scale == None:
-
-    #     raise PreventUpdate
-    # else:
        
     return bar_fig(the_years,the_scale)
 
