@@ -16,7 +16,7 @@ import pandas as pd
 import numpy as np
 import re
 import pickle
-#from config import api_key
+import os #from config import api_key
 
 external_stylesheets = ['/assets/dash_style_sheet_fire.css',] 
 
@@ -29,7 +29,8 @@ colors = {
     'text': '#7FDBFF'
 }
 
-mapbox_access_token = api_key
+key = os.environ['api_key']
+mapbox_access_token = key
 
 # add data
 with open('dataframes.pkl','rb') as f:
