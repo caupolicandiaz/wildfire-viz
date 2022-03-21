@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 # dash imports
 import dash
-# deprecated
-# import dash_core_components as dcc 
-# import dash_html_components as html 
 from dash import dcc
 from dash import html 
 from dash.dependencies import Input, Output
@@ -19,8 +16,9 @@ import pandas as pd
 import numpy as np
 import re
 import pickle
+from config import api_key
 
-external_stylesheets = ['/assets/dash_style_sheet_fire.css',] #'http://codepen.io/chriddyp/pen/bWLwgP.css'\
+external_stylesheets = ['/assets/dash_style_sheet_fire.css',] 
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -31,7 +29,7 @@ colors = {
     'text': '#7FDBFF'
 }
 
-mapbox_access_token = 'pk.eyJ1IjoicGF1bGR6IiwiYSI6ImNrNDIxcGVqNTA3ajYzZm8wbXI4Mml6NDIifQ.PWBbtxmT5Fk_EGU90oYVIw'
+mapbox_access_token = api_key
 
 # add data
 with open('dataframes.pkl','rb') as f:
@@ -43,11 +41,8 @@ df = data_dict['main']
 # stacked area chart data
 fire_counts = data_dict['counts']
 
-#fire_counts = df.pivot_table(values='id',index='fire_year',columns='general_cause',aggfunc='count')
-#fire_counts.drop(columns='Under Invest',inplace=True)
-
 # acres burned data
-acres = data_dict['acres'] #df.groupby(['fire_year']).sum()
+acres = data_dict['acres'] 
 
 # create options list
 fire_causes = list(df['general_cause'].unique())
@@ -56,6 +51,7 @@ dropdown_lst = [{'label':x,'value':x} for x in fire_causes]
 # create color scales
 rgb_colors = px.colors.sequential.Burg                  #original burgandy scale
 ten_colors = cl.to_rgb(cl.interp(rgb_colors,10))        #scale extended
+
 
 def add_alpha(a_lst, pct):
     out = []
@@ -69,6 +65,13 @@ alpha_colors = add_alpha(ten_colors,'.9')               #scale translated to inc
 
 # chart definitions ######################################
 
+def plot_styling(func):
+    def update_styling(*args, **kwargs):
+        new_plot = func(*args, **kwargs).update_layout(plot_bgcolor='#ececf1', paper_bgcolor='#ececf1', autosize=True)
+        return new_plot
+    return update_styling
+
+@plot_styling
 def bar_fig(years_data,scale_choice):
     data = list(acres['total_acres'].iteritems())
     year_selection = list(range(years_data[0],years_data[1] + 1))
@@ -86,13 +89,14 @@ def bar_fig(years_data,scale_choice):
         y=[x[1] if x[0] not in year_selection else np.nan for x in data],
         marker_color='rgba(152, 103, 144,.4)',
         hovertemplate = hover_format,))
-    acres_fig.update_layout(barmode='stack',plot_bgcolor='#ececf1', paper_bgcolor='#ececf1', showlegend=False, autosize=True)  #height=350,margin=dict(t=25),                         
+    acres_fig.update_layout(barmode='stack', showlegend=False, autosize=True)  
     acres_fig.update_xaxes(title='Years')
     acres_fig.update_yaxes(title='Acres Burned',type=scale_choice)
 
     return acres_fig
 
 
+@plot_styling
 def stacked_fig(dd_selection):
     go_stack = go.Figure()
     col_lst = fire_counts.columns
@@ -115,63 +119,45 @@ def stacked_fig(dd_selection):
                 showlegend=False,
                 mode='lines',
                 line=dict(width=0, color= the_color_scale[i]),
-                stackgroup='one', # define stack group
+                stackgroup='one', 
             ))
 
-    go_stack.update_layout(title_text='',plot_bgcolor='#ececf1', paper_bgcolor='#ececf1', autosize=True,) #, height=600,
     go_stack.update_yaxes(title='Annual Fire Counts', tickvals=list(range(500,2500,500)), showgrid=True, automargin=True)
-    go_stack.update_xaxes(showgrid=False)
+    go_stack.update_xaxes(title='Years', showgrid=False)
 
     return go_stack
 
 
-def scatter_map(the_data, sizes):
+@plot_styling
+def scatter_map(the_data):
 
     sub = pd.read_json(the_data)
-    # markers = [10,100,1000]
 
     scatter_fig = go.Figure()
 
-    # for x in markers:
-    max = sub['total_acres'].max() if sizes[1] == 10000 else sizes[1]
-    temp = sub[(sub['total_acres'] >= sizes[0]) & (sub['total_acres'] <= max)]
-
-
-    customdf = np.stack((temp['general_cause'],temp['fire_year'],temp['total_acres']),axis=-1)
+    customdf = np.stack((sub['general_cause'],sub['fire_year'],sub['total_acres']),axis=-1)
 
     scatter_fig.add_trace(go.Scattermapbox(
-            lat=temp['latitude'],
-            lon=temp['longitude'],
-            # text=the_text,              
+            lat=sub['latitude'],
+            lon=sub['longitude'],
             showlegend=True,
             name='',
             mode='markers',
-            # hoverinfo='text',
             customdata = customdf,
             hovertemplate = 'Source: %{customdata[0]} <br> Year: %{customdata[1]} <br> Total Acres: %{customdata[2]:,.0f} <br>',
             marker=go.scattermapbox.Marker(
-                size=10, #temp['marker_sz'],
-                # sizemode='area',
-                color='#986790', #'#aaadf8',
+                size=10, 
+                color='#986790',
                 opacity=.5,
             ),
         ))
 
     scatter_fig.update_layout(
-        autosize=True,
-        # width=450,
-        # height=550,
         hovermode='closest',
-        # title_text='Fire Locations',
-        paper_bgcolor='#ececf1', #rgba(0,0,0,0)',
         legend=dict(
             orientation="v",
             title="Fires",
             itemsizing="constant",
-            # yanchor="bottom",
-            # y=1.02,
-            # xanchor="right",
-            # x=1
             ),
         mapbox=go.layout.Mapbox(
             accesstoken=mapbox_access_token,
@@ -189,13 +175,16 @@ def scatter_map(the_data, sizes):
 
 app.layout = html.Div(className='grid-page',children=[
     html.Div(
-        className='header',
+        className='flex-header',
+        id='banner-container',
         children=[
         html.P(className='banner-txt', children='Oregon Wildfires: Exploring 50 Years of Data'),
         html.H3(' '),
     ]),
     html.Div(id='side-bar',children=[
-        html.Div(id='tab-header',children=[
+        dcc.Tabs(value='tab-1', children=[
+            dcc.Tab(label='Visualization Controls', value='tab-1')]),
+        html.Div(className='flex-header', id='cat-header',children=[
             html.P('Ignition Sources'),
             html.Button('Reset Values',id='reset-button'),
             dcc.Store(id='click-value',data=0)]),
@@ -205,33 +194,40 @@ app.layout = html.Div(className='grid-page',children=[
             value=fire_causes,
             placeholder="Select a cause",
             multi=True),),
-        html.Div(className='ranges',id='range-header',children=[
+        html.Div(className='flex-header',id='range-header',children=[
             html.P('Year Range: '),
             html.Div(id='range-text'),]),  
         dcc.RangeSlider(
             className='the-slider',
             id='year-selector',
-            marks={i: '{}'.format(i) for i in range(1970, 2030, 10)},
+            marks={i: {'label':'{}'.format(i), 'style':{'color': 'rgba(0, 0, 0, 0.6)'}} \
+                    for i in range(1970, 2030, 10)},
             min=1970,
             max=2020,
-            value=[2010,2012],
+            value=[2010,2020],
             step=1), 
-        html.Div(className='ranges',id='acre-header',children=[
-            html.P('Fire Size: '),
+        html.Div(className='flex-header',id='acre-header',children=[
+            html.P('* Fire Size (Acres): '),
             html.Div(id='acre-text'),]), 
         dcc.RangeSlider(
             className='the-slider',
             id='size-selector',
-            marks={i: '{}'.format(10 ** i) for i in range(5)},
-            value=[1,2], 
+            marks={i: {'label':'{}'.format(10 ** i), 'style':{'color': 'rgba(0, 0, 0, 0.6)'}} \
+                    for i in range(5)},
+            value=[2,3], 
             step=.01),
-        html.Div(id='bubble-header',children=[
+        html.Div(className='flex-header', id='bubble-header',children=[
             html.P('Filter Summary: '),
-            html.Div(id='map-data'),]),                      
-        html.Div(className='bubble-figure',children=[
-            html.Div(children=''
-            ),]),
+            ]),
+        html.Div(id='map-data'),
+        html.Br(),
         html.P('* A selection that contains the max acre range will display all fires above this value as well'),
+        dcc.Markdown(
+            '''
+            Source: [Kaggle Datasets](https://www.kaggle.com/fritzstevenson/oregons-historical-wildfires)   
+            Code: [Git Repo](https://github.com/caupolicandiaz/wildfire-viz)
+            '''
+            ),
         ]),
     html.Div(id='main-figure',children=[
         dcc.Tabs(
@@ -253,7 +249,7 @@ app.layout = html.Div(className='grid-page',children=[
                     value='tab-2',
                     className='custom-frame',
                     selected_className='selected-frame',children=[
-                        html.Div(id='scale-container',children=[
+                        html.Div(className='flex-header', id='scale-container',children=[
                             html.Div(id='y-label', children='Y-scale:  '),
                             dcc.RadioItems(id='radio-scale',
                                 options=[
@@ -275,7 +271,7 @@ app.layout = html.Div(className='grid-page',children=[
                         dcc.Graph(
                             id='oregon-map',
                         ),]),
-                    ])]),
+              ])]),
     dcc.Store(id='intermediate-value'),
     dcc.Store(id='transformed-value'),
     html.Div(className='footer', children=[ 
@@ -292,18 +288,25 @@ app.layout = html.Div(className='grid-page',children=[
 
 @app.callback(Output('intermediate-value', 'data'), 
     [Input('year-selector', 'value'),
-    Input('filter-dd', 'value')])
+    Input('filter-dd', 'value'),
+    Input('transformed-value', 'data')])
 
-def clean_data(value,category):
-     # some expensive clean data step
+def clean_data(value, category, sizes):
+     # a clean data step
 
      years_rng = [value[0]] if value[0] == value[1] else list(range(value[0],value[1] + 1,1))
+     years_criteria = df['fire_year'].isin(years_rng)  
+     
      category = [category] if isinstance(category,str) else category
+     category_criteria = df['general_cause'].isin(category) 
 
-     cleaned_df = df[(df['fire_year'].isin(years_rng)) & (df['general_cause'].isin(category))]
+     max = df['total_acres'].max() if sizes[1] == 10000 else sizes[1]
+     size_criteria = df['total_acres'].between(sizes[0], max)
 
-     # more generally, this line would be
-     # json.dumps(cleaned_df)
+     all_criteria = years_criteria & category_criteria & size_criteria
+     
+     cleaned_df = df[all_criteria]
+
      return cleaned_df.to_json()
 
 # transform func
@@ -349,22 +352,21 @@ def update_fig(selection):
         return stacked_fig(selection)
 
 # map functions
-
 @app.callback(
     Output('oregon-map', 'figure'), 
-    [Input('intermediate-value', 'data'),
-    Input('transformed-value', 'data')],
+    [Input('intermediate-value', 'data')],
     )
 
-def update_map(jsonified_data, vals):
+def update_map(jsonified_data):
        
-    return scatter_map(jsonified_data, vals)
+    return scatter_map(jsonified_data)
 
 # year slider output
 @app.callback(
     Output('range-text', 'children'), 
     [Input('year-selector', 'value')],
     )
+
 def update_range(some_text):
 
     if some_text == None:
@@ -377,6 +379,7 @@ def update_range(some_text):
     Output('acre-text', 'children'), 
     [Input('transformed-value', 'data')],
     )
+
 def update_acres(some_text):
 
     if some_text == None:
@@ -397,7 +400,8 @@ def update_map_totals(some_data):
         temp_df = pd.read_json(some_data)
         the_count = temp_df['id'].count()
         the_acres = round(temp_df['total_acres'].sum(),0)
-        return html.H5('Fires: {:,} , Total Acres: {:,.0f}'.format(the_count, the_acres))
+        return [html.P('Total Fires: {:,}'.format(the_count)) ,
+                html.P('Total Acres: {:,.0f}'.format(the_acres))]
 
 
 # reset dropdown field
@@ -417,15 +421,14 @@ def update_dropdown(clicks,tally):
 # demo callback
 @app.callback(
     Output('text-out', 'children'), 
-    [Input('size-selector', 'value')],
+    [Input('intermediate-value', 'data')],
     )
 def update_div(some_text):
 
     if some_text == None:
         return []
     else:
-        content = str(transform_value(some_text[0]))
-        return content
+        return " " #output check
 
 
 
