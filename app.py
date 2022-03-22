@@ -29,8 +29,7 @@ colors = {
     'text': '#7FDBFF'
 }
 
-key = os.environ['api_key']
-mapbox_access_token = key
+mapbox_access_token = os.environ['api_key']
 
 # add data
 with open('dataframes.pkl','rb') as f:
