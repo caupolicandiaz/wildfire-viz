@@ -49,8 +49,8 @@ fire_causes = list(df['general_cause'].unique())
 dropdown_lst = [{'label':x,'value':x} for x in fire_causes]
 
 # create color scales
-rgb_colors = px.colors.sequential.Burg                  #original burgandy scale
-ten_colors = cl.to_rgb(cl.interp(rgb_colors,10))        #scale extended
+rgb_colors = px.colors.sequential.Burg                  # original burgandy scale
+ten_colors = cl.to_rgb(cl.interp(rgb_colors,10))        # scale extended
 
 
 def add_alpha(a_lst, pct):
@@ -60,7 +60,7 @@ def add_alpha(a_lst, pct):
         out.append(f'rgba({values},{pct})')
     return out
 
-alpha_colors = add_alpha(ten_colors,'.9')               #scale translated to include alpha
+alpha_colors = add_alpha(ten_colors,'.9')               # scale translated to include alpha
 
 
 # chart definitions ######################################
